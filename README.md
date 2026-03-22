@@ -5,5 +5,5 @@ Frontend Car Rental System using HTML, CSS and JavaScript
 - Car listing
 - Booking UI
 - Responsive design
-# Car Rental System
+
 
