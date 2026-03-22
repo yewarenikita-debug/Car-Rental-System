@@ -7,5 +7,3 @@ Frontend Car Rental System using HTML, CSS and JavaScript
 - Responsive design
 # Car Rental System
 
-## Project Preview
-![Screenshot](desk.png)
