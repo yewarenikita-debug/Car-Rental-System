@@ -1,0 +1,623 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Rental System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+            background-color: #ADD8E6; /* Light Blue */
+            color: white;
+        }
+
+        .navbar {
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+
+        .navbar a:hover {
+            background-color: #444;
+        }
+
+        .left-sidebar {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 10px;
+            background-color: #f1f1f1;
+            width: 250px;
+            position: fixed;
+            left: -260px;
+            top: 0;
+            height: 100%;
+            transition: left 0.3s ease;
+        }
+
+        .left-sidebar button {
+            margin-bottom: 10px;
+            background-color: #007BFF; /* Same as pagination button */
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            color: white;
+            border: none;
+            font-size: 16px;
+        }
+
+        .left-sidebar button:disabled {
+            background-color: #d6d6d6;
+            cursor: not-allowed;
+        }
+
+        .left-sidebar .drag-btn {
+            position: absolute;
+            top: 50%;
+            right: -15px;
+            transform: translateY(-50%);
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .modal-content input, .modal-content select, .modal-content button {
+            width: 80%;
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .modal-content button {
+            background-color: #007BFF; /* Match Next/Previous button color */
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .modal-content button:hover {
+            background-color: #0056b3;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        td {
+            text-align: center;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .pagination button {
+            background-color: #007BFF; /* Same as modal buttons */
+            color: white;
+            border: none;
+            padding: 5px 20px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .pagination button:hover {
+            background-color: #0056b3;
+        }
+		
+
+        @media (max-width: 600px) {
+            .navbar {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .navbar a {
+                margin-bottom: 10px;
+                width: 100%;
+                text-align: center;
+            }
+
+            .left-sidebar {
+                width: 200px;
+            }
+
+            .modal-content input, .modal-content select, .modal-content button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>Car Rental System</div>
+    </div>
+
+    <div class="navbar">
+        <a href="#">Home</a>
+        <a href="#" onclick="openAboutUs()">About Us</a>
+        <a href="#" onclick="openCarListing()">Car Listing</a>
+        <a href="#" onclick="showContactInfo()">Contact Us</a>
+        <a href="#" onclick="openNewBookingForm()">Register Now</a>
+        <a href="#" onclick="openCustomerLogin()">Customer Login</a>
+    </div>
+
+    <div class="left-sidebar" id="leftSidebar">
+        <button id="adminLoginBtn" onclick="openAdminLogin()">Admin Login</button>
+        <button id="userListBtn" onclick="openUserList()" disabled>Registered Users</button>
+        <button id="userLogoutBtn" onclick="logout()">Logout</button>
+        <button class="drag-btn" onclick="toggleSidebar()">≡</button>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="adminLoginModal" class="modal">
+        <div class="modal-content">
+            <h2>Admin Login</h2>
+            <input type="text" id="adminUsername" placeholder="Admin Username">
+            <input type="password" id="adminPassword" placeholder="Password">
+            <button onclick="adminLogin()">Login</button>
+            <button onclick="closeAdminLogin()">Close</button>
+        </div>
+    </div>
+<!-- Customer Login Modal -->
+<div id="customerLoginModal" class="modal">
+    <div class="modal-content">
+        <h2>Customer Login</h2>
+        <input type="text" id="custName" placeholder="Customer Name">
+        <input type="text" id="custMobile" placeholder="Mobile Number">
+        <button onclick="customerLogin()">Login</button>
+        <button onclick="closeCustomerLogin()">Close</button>
+    </div>
+</div>
+
+ <!-- Car Listing Modal -->
+<div id="carListingModal" class="modal">
+    <div class="modal-content">
+        <h2>Car Types and Subtypes</h2>
+        <!-- Car Type: SUV -->
+        <h3>SUV</h3>
+        <ul>
+            <li><a href="#" onclick="showCarDetails('SUV', 'Compact SUV', 500)">Compact SUV - 500rs/day</a></li>
+            <li><a href="#" onclick="showCarDetails('SUV', 'Mid-size SUV', 700)">Mid-size SUV - 700rs/day</a></li>
+            <li><a href="#" onclick="showCarDetails('SUV', 'Full-size SUV', 900)">Full-size SUV - 900rs/day</a></li>
+        </ul>
+
+        <!-- Car Type: Sedan -->
+        <h3>Sedan</h3>
+        <ul>
+            <li><a href="#" onclick="showCarDetails('Sedan', 'Compact Sedan', 400)">Compact Sedan - 400rs/day</a></li>
+            <li><a href="#" onclick="showCarDetails('Sedan', 'Mid-size Sedan', 600)">Mid-size Sedan - 600rs/day</a></li>
+            <li><a href="#" onclick="showCarDetails('Sedan', 'Full-size Sedan', 800)">Full-size Sedan - 800rs/day</a></li>
+        </ul>
+
+        <!-- Car Type: Hatchback -->
+        <h3>Hatchback</h3>
+        <ul>
+            <li><a href="#" onclick="showCarDetails('Hatchback', 'Compact Hatchback', 1500)">Compact Hatchback - 1500rs/day</a></li>
+            <li><a href="#" onclick="showCarDetails('Hatchback', 'Luxury Hatchback', 2000)">Luxury Hatchback - 2000rs/day</a></li>
+        </ul>
+
+        <!-- Car Type: Convertible -->
+        <h3>Convertible</h3>
+        <ul>
+            <li><a href="#" onclick="showCarDetails('Convertible', '2-door Convertible', 2000)">2-door Convertible - 2000rs/day</a></li>
+            <li><a href="#" onclick="showCarDetails('Convertible', '4-door Convertible',2500)">4-door Convertible - 2500rs/day</a></li>
+        </ul>
+
+        <!-- Car Type: Luxury -->
+        <h3>Luxury</h3>
+        <ul>
+            <li><a href="#" onclick="showCarDetails('Luxury', 'Luxury Sedan', 1000)">Luxury Sedan - 1000rs/day</a></li>
+            <li><a href="#" onclick="showCarDetails('Luxury', 'Luxury SUV', 1200)">Luxury SUV - 1200rs/day</a></li>
+            <li><a href="#" onclick="showCarDetails('Luxury', 'Luxury Hatchback', 1100)">Luxury Hatchback - 1100rs/day</a></li>
+        </ul>
+
+        <p id="carDetails"></p>
+        <button onclick="closeCarListing()">Close</button>
+    </div>
+</div>
+
+
+    <!-- About Us Modal -->
+    <div id="aboutUsModal" class="modal">
+        <div class="modal-content">
+            <h2>About Us</h2>
+            <p>We are a leading car rental service provider with a wide range of vehicles available for hire. Our mission is to offer top-quality cars at affordable prices to meet your travel needs. We strive for excellence and customer satisfaction.</p>
+            <button onclick="closeAboutUs()">Close</button>
+        </div>
+    </div>
+
+    <!-- New Booking Modal -->
+    <div id="newBookingModal" class="modal">
+        <div class="modal-content">
+            <h2>Register New Booking</h2>
+            <input type="text" id="customerName" placeholder="Customer Name">
+            <input type="text" id="customerAddress" placeholder="Customer Address">
+            <input type="text" id="customerMobile" placeholder="Mobile Number">
+            <input type="text" id="customerAadhar" placeholder="Aadhar Card Number">
+            <select id="TypeOfCar" onchange="updateSubtypes()">
+                <option value="">Select Car Type</option>
+                <option value="SUV">SUV</option>
+                <option value="Sedan">Sedan</option>
+                <option value="Hatchback">Hatchback</option>
+                <option value="Convertible">Convertible</option>
+                <option value="Luxury">Luxury</option>
+            </select>
+			<select id="CarSubtype">
+                <option value="">Select Car Subtype</option>
+            </select>
+                                <select id="carFor">
+                                 <option value="carFor">carFor</option>
+                                <option value="Girls">Girls</option>
+                                <option value="Boys">Boys</option>
+                                <option value="Girls+Boys">Girls+Boys</option>
+                                <option value="Family">Family</option>
+                                </select>
+            <input type="date" id="DateOfIssue" placeholder="Date Of Issue">
+                        <input type="time" id="PickupTime" placeholder="Pickup Time">
+                        <input type="date" id="DropDate" placeholder="Drop Date">
+
+            <button onclick="addBooking()">Add</button>
+            <button onclick="closeNewBookingForm()">Close</button>
+        </div>
+    </div>
+
+    <!-- Registered Users List Modal -->
+    <div id="userListModal" class="modal">
+        <div class="modal-content">
+            <h2>Registered Users</h2>
+            <div style="max-height: 500px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Address</th>
+                            <th>Mobile Number</th>
+                            <th>Aadhar Card</th>
+                            <th>Type Of Car,subtype</th>
+                            <th>car For</th>
+                            <th>Date Of Issue</th>
+                                                                 <th>Pickup Time</th>
+                                                                 <th>Drop Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTable"></tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button onclick="changePage(-1)">Previous</button>
+                <button onclick="changePage(1)">Next</button>
+            </div>
+            <button onclick="closeUserList()">Close</button>
+        </div>
+    </div>
+
+    <!-- Contact Us Modal -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <h2>Contact Information</h2>
+            <p><strong>Person 1 (Administrative)</strong>: Mob. 123456789</p>
+            <p><strong>Person 2 (Support)</strong>: Mob. 123456789</p>
+            <p><strong>Email</strong>: abc@gmail.com</p>
+            <button onclick="closeContactInfo()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let users = [];
+        let bookings = [];
+        let currentPage = 1;
+        const usersPerPage = 5;
+        let isLoggedIn = false;
+
+        function openAdminLogin() {
+            document.getElementById('adminLoginModal').style.display = 'flex';
+        }
+
+        function closeAdminLogin() {
+            document.getElementById('adminLoginModal').style.display = 'none';
+        }
+
+        function openCarListing() {
+            document.getElementById('carListingModal').style.display = 'flex';
+        }
+
+        function closeCarListing() {
+            document.getElementById('carListingModal').style.display = 'none';
+        }
+
+        function openAboutUs() {
+            document.getElementById('aboutUsModal').style.display = 'flex';
+        }
+
+        function closeAboutUs() {
+            document.getElementById('aboutUsModal').style.display = 'none';
+        }
+
+        function openNewBookingForm() {
+            document.getElementById('newBookingModal').style.display = 'flex';
+        }
+
+        function closeNewBookingForm() {
+            document.getElementById('newBookingModal').style.display = 'none';
+        }
+
+        function openUserList() {
+            if (!isLoggedIn) {
+                alert('You need to log in as an admin to access this.');
+                return;
+            }
+            document.getElementById('userListModal').style.display = 'flex';
+            displayUsers();
+        }
+
+        function closeUserList() {
+            document.getElementById('userListModal').style.display = 'none';
+        }
+
+        function showContactInfo() {
+            document.getElementById('contactModal').style.display = 'flex';
+        }
+
+        function closeContactInfo() {
+            document.getElementById('contactModal').style.display = 'none';
+        }
+		
+		// Function to show car details including type, subtype, and rate
+function showCarDetails(carType, carSubtype, rate) {
+    const details = `You selected a ${carSubtype} from ${carType}. The rate per day is $${rate}.`;
+    // Display car details with the rate
+    document.getElementById('carDetails').innerText = details;
+    // Open the modal (in case it's not open)
+    document.getElementById('carListingModal').style.display = 'flex';
+}
+
+
+        function adminLogin() {
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            if (username === 'NIKITA' && password === 'NIKITA') {
+                closeAdminLogin();
+                alert('Login Successfully!');
+                isLoggedIn = true;
+                document.getElementById('userListBtn').disabled = false;
+            } else {
+                alert('Invalid Admin Credentials');
+            }
+        }
+let customers = [];
+let customerLoggedIn = false;
+
+function openCustomerLogin() {
+    document.getElementById('customerLoginModal').style.display = 'flex';
+}
+
+function closeCustomerLogin() {
+    document.getElementById('customerLoginModal').style.display = 'none';
+}
+
+function customerLogin() {
+    const name = document.getElementById('custName').value.trim();
+    const mobile = document.getElementById('custMobile').value.trim();
+
+    if (name && mobile) {
+        // Find the booking of this customer
+        const customerBooking = bookings.find(
+            b => b.name === name && b.mobile === mobile
+        );
+
+        if (customerBooking) {
+            alert(
+                'Customer Login Successful!\n\n' +
+                'Name: ' + customerBooking.name + '\n' +
+                'Mobile: ' + customerBooking.mobile + '\n' +
+                'Address: ' + customerBooking.address + '\n' +
+                'Aadhar: ' + customerBooking.aadhar + '\n' +
+                'Car Type: ' + customerBooking.fullCarDescription + '\n' +
+                'Car For: ' + customerBooking.carFor + '\n' +
+                'Date of Issue: ' + customerBooking.Dateofissue+ '\n' +
+                                     'Pickup Time: ' + customerBooking.PickupTime + '\n' +
+                                      'Drop Date: ' + customerBooking.DropDate  + '\n' +
+                                      'Driver Contact: 1234567890' 
+            );
+        } else {
+            alert('No booking found for this customer. Please register first.');
+        }
+
+        closeCustomerLogin();
+    } else {
+        alert('All fields required');
+    }
+}		
+		// Function to update subtypes based on selected car type
+        function updateSubtypes() {
+            const carType = document.getElementById('TypeOfCar').value;
+            const subtypeDropdown = document.getElementById('CarSubtype');
+
+            // Clear existing subtypes
+            subtypeDropdown.innerHTML = "<option value=''>Select Car Subtype</option>";
+
+            // Define subtypes for each car type
+            const subtypes = {
+                SUV: ['Compact SUV', 'Mid-size SUV', 'Full-size SUV'],
+                Sedan: ['Compact Sedan', 'Mid-size Sedan', 'Full-size Sedan'],
+                Hatchback: ['Compact Hatchback', 'Luxury Hatchback'],
+                Convertible: ['2-door Convertible', '4-door Convertible'],
+                Luxury: ['Luxury Sedan', 'Luxury SUV', 'Luxury Hatchback']
+            };
+
+            // Populate the subtype dropdown
+            if (subtypes[carType]) {
+                subtypes[carType].forEach(subtype => {
+                    const option = document.createElement('option');
+                    option.value = subtype;
+                    option.textContent = subtype;
+                    subtypeDropdown.appendChild(option);
+                });
+            }
+        }
+
+       function addBooking() {
+    const name = document.getElementById('customerName').value.trim();
+    const address = document.getElementById('customerAddress').value.trim();
+    const mobile = document.getElementById('customerMobile').value.trim();
+    const aadhar = document.getElementById('customerAadhar').value.trim();
+    const selectedCar = document.getElementById('TypeOfCar').value.trim();
+    const carSubtype = document.getElementById('CarSubtype').value.trim();
+    const fullCarDescription = selectedCar + ':' + carSubtype;  
+    const carFor = document.getElementById('carFor').value.trim();
+    const Dateofissue = document.getElementById('DateOfIssue').value.trim();
+       const PickupTime = document.getElementById('PickupTime').value.trim();
+        const DropDate = document.getElementById('DropDate').value.trim();
+    
+    if (name && address && mobile && aadhar && fullCarDescription && carFor && Dateofissue &&  PickupTime  &&  DropDate ) {
+        bookings.push({ name, address, mobile, aadhar, fullCarDescription, carFor, Dateofissue,  PickupTime , DropDate });
+        alert('Booking Added Successfully!');
+
+        // Clear fields
+        document.getElementById('customerName').value = '';
+        document.getElementById('customerAddress').value = '';
+        document.getElementById('customerMobile').value = '';
+        document.getElementById('customerAadhar').value = '';
+        document.getElementById('TypeOfCar').value = '';
+        document.getElementById('CarSubtype').value = '';
+        document.getElementById('carFor').value = '';
+        document.getElementById('DateOfIssue').value = '';
+                   document.getElementById('PickupTime').value = '';
+                   document.getElementById('DropDate').value = '';
+    } else {
+        alert('All fields are required!');
+    }
+}
+        function displayUsers() {
+            let tableBody = document.getElementById('usersTable');
+            tableBody.innerHTML = '';
+            const startIndex = (currentPage - 1) * usersPerPage;
+            const endIndex = startIndex + usersPerPage;
+            const currentUsers = bookings.slice(startIndex, endIndex);
+            currentUsers.forEach(user => {
+                let row = `
+                <tr>
+                    <td>${user.name}</td>
+                    <td>${user.address}</td>
+                    <td>${user.mobile}</td>
+                    <td>${user.aadhar}</td>
+                    <td>${user.fullCarDescription}</td>
+                    <td>${user.carFor}</td>
+                    <td>${user.Dateofissue}</td>
+                                               <td>${user.PickupTime}</td>
+                                             <td>${user.DropDate}</td>
+                                       </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        function changePage(direction) {
+            const totalPages = Math.ceil(bookings.length / usersPerPage);
+            if (direction === -1 && currentPage > 1) {
+                currentPage--;
+            } else if (direction === 1 && currentPage < totalPages) {
+                currentPage++;
+            }
+            displayUsers();
+        }
+
+        function logout() {
+            if (!isLoggedIn) {
+                alert('You need to log in as an admin to access this.');
+                return;
+            }
+            alert('Logged out successfully!');
+            document.getElementById('adminUsername').value = '';
+            document.getElementById('adminPassword').value = '';
+            isLoggedIn = false;
+            document.getElementById('userListBtn').disabled = true;
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('leftSidebar');
+            if (sidebar.style.left === '0px') {
+                sidebar.style.left = '-250px';
+            } else {
+                sidebar.style.left = '0px';
+            }
+        }
+    </script>
+</body>
+</html>
